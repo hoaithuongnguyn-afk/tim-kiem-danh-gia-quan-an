@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Khám Phá & Đánh Giá Ẩm Thực</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400..800&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="min-h-screen text-slate-800 antialiased p-4 md:p-8" style="background-image: url('9a171ed2d5f3155687b34219c31fcd2d.jpg'); background-repeat: repeat; background-attachment: fixed; background-size: cover;">
+    <div class="max-w-4xl mx-auto bg-white p-6 md:p-10 rounded-3xl shadow-xl border border-slate-100">
+        
+        <!-- HEADER -->
+        <div class="text-center mb-8">
+            <h1 class="text-3xl md:text-4xl font-extrabold mb-2" style="font-family: 'Bricolage Grotesque', sans-serif; color: #ce9552;">
+                <i class="fa-solid fa-utensils mr-2" style="color: #ce9552;"></i>Tra Cứu Quán Ăn Ngon
+            </h1>
+            <p class="text-slate-500 text-sm md:text-base">Hệ thống phân tích cảm xúc & tích lũy phản hồi ẩm thực thực tế</p>
+        </div>
+		
+		<!-- MENU TÍCH HỢP -->
+        <div class="flex justify-center gap-4 mb-8">
+            <button onclick="showTab('search')" id="btnSearch" class="bg-[#ce9552] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all">Tra Cứu Quán Ăn</button>
+            <button onclick="showTab('dashboard')" id="btnDash" class="bg-slate-100 text-slate-600 px-6 py-2 rounded-full font-bold hover:bg-slate-200 transition-all">Thống Kê Tổng Quan</button>
+        </div>
+
+        <div id="tabSearch">
+		
+        <!-- TÌM KIẾM -->
+        <div class="flex flex-row items-center gap-3 mb-8">
+            <div class="relative flex-grow">
+                <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-[#ce9552]"></i>
+                <input type="text" id="searchInput" placeholder="Nhập tên quán ăn hoặc món ăn (vd: Huế Thương)..." 
+                       class="w-full pl-11 pr-4 py-3 rounded-2xl border border-[#F0E0C9] focus:ring-2 focus:ring-[#ce9552] outline-none text-base transition-all shadow-sm text-[#ce9552] placeholder:text-[#ce9552]/60">
+            </div>
+            <button onclick="searchReviews()" 
+                    class="bg-[#ce9552] hover:bg-[#b57a3e] text-white font-bold py-3 px-8 rounded-2xl shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2 whitespace-nowrap">
+                <i class="fa-solid fa-search"></i> Tìm kiếm
+            </button>
+        </div>
+
+        <!-- KHU VỰC GỢI Ý -->
+        <div id="recommendationSection" class="mb-8">
+            <h3 class="font-bold text-xl text-slate-800 mb-4"><i class="fa-solid fa-lightbulb text-[#ce9552] mr-2"></i>Gợi ý cho bạn hôm nay:</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                <div class="bg-[#FDF6EC] rounded-2xl p-5 border border-[#F0E0C9] shadow-sm">                    
+                    <h4 class="font-bold text-[#ce9552] mb-4 flex items-center"><i class="fa-solid fa-medal text-[#ce9552] text-lg mr-2"></i> Đánh giá cao</h4>
+                    <div id="recTop" class="space-y-3"></div>
+                </div>
+                <div class="bg-[#FDF6EC] rounded-2xl p-5 border border-[#F0E0C9] shadow-sm">
+                    <h4 class="font-bold text-[#ce9552] mb-4 flex items-center"><i class="fa-solid fa-fire text-[#ce9552] text-lg mr-2"></i> Nhiều người ghé</h4>
+                    <div id="recHot" class="space-y-3"></div>
+                </div>
+                <div class="bg-[#FDF6EC] rounded-2xl p-5 border border-[#F0E0C9] shadow-sm">
+                    <h4 class="font-bold text-[#ce9552] mb-4 flex items-center"><i class="fa-solid fa-triangle-exclamation text-[#ce9552] text-lg mr-2"></i> Cần cân nhắc</h4>
+                    <div id="recBad" class="space-y-3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- KHU VỰC KẾT QUẢ TÌM KIẾM -->
+        <div id="analyticsCard" class="hidden mb-8 p-6 bg-[#FDF6EC] rounded-2xl border border-[#F0E0C9] shadow-sm">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-4 pb-4 border-b border-[#F0E0C9]">
+                <div>
+                    <h2 id="resName" class="text-2xl font-bold text-[#ce9552]"></h2>
+                    <p id="resAddress" class="text-sm text-slate-600 mt-1"></p>
+                </div>
+                <div id="mapLinkContainer"></div>
+            </div>
+            <div class="flex flex-col md:flex-row items-center justify-between gap-6">
+                <div id="statsSummary" class="space-y-2 text-sm md:text-base"></div>
+                <div class="w-44 h-44 relative"><canvas id="sentimentChart"></canvas></div>
+            </div>
+        </div>
+
+        <!-- FORM BÌNH LUẬN -->
+        <div id="commentFormCard" class="hidden mb-8 p-6 bg-slate-50 rounded-2xl border border-[#F0E0C9]">
+            <h3 class="font-bold text-lg text-slate-800 mb-3"><i class="fa-solid fa-pen-to-square text-[#ce9552] mr-2"></i>Gửi bình luận của bạn</h3>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-3">
+                <input type="text" id="reviewerName" placeholder="Tên của bạn..." class="p-2.5 rounded-xl border border-slate-200 outline-none text-sm focus:ring-2 focus:ring-[#ce9552]">
+                <select id="ratingScore" class="p-2.5 rounded-xl border border-slate-200 outline-none text-sm font-semibold focus:ring-2 focus:ring-[#ce9552]">
+                    <option value="5">★★★★★ (5 sao - Rất tốt)</option>
+                    <option value="4">★★★★ (4 sao - Tốt)</option>
+                    <option value="3">★★★ (3 sao - Trung bình)</option>
+                    <option value="2">★★ (2 sao - Khá tệ)</option>
+                    <option value="1">★ (1 sao - Rất tệ)</option>
+                </select>
+                <select id="reviewAspect" class="p-2.5 rounded-xl border border-slate-200 outline-none text-sm focus:ring-2 focus:ring-[#ce9552]">
+                    <option value="Món ăn">Khía cạnh: Món ăn</option>
+                    <option value="Thái độ phục vụ">Khía cạnh: Thái độ phục vụ</option>
+                    <option value="Giá cả">Khía cạnh: Giá cả</option>
+                </select>
+            </div>
+            <textarea id="reviewContent" rows="3" placeholder="Chia sẻ trải nghiệm ăn uống..." class="w-full p-3 rounded-xl border border-slate-200 outline-none text-sm mb-3 focus:ring-2 focus:ring-[#ce9552]"></textarea>
+            <button onclick="submitNewComment()" class="bg-[#ce9552] hover:bg-[#b57a3e] text-white font-bold py-2.5 px-6 rounded-xl text-sm transition-all shadow">
+                Gửi đánh giá
+            </button>
+        </div>
+
+        <div id="results" class="space-y-4"></div>
+		</div> <!-- Đóng tabSearch -->
+
+        <!-- TAB DASHBOARD STREAMLIT NHÚNG -->
+        <div id="tabDashboard" class="hidden h-[800px] w-full rounded-2xl overflow-hidden border border-[#F0E0C9] shadow-sm">
+            <iframe src="http://localhost:8501" width="100%" height="100%" frameborder="0"></iframe>
+        </div>
+		</div>
+
+    <script>
+        let chartInstance = null;
+        let currentSearchQuery = "";
+        const API_URL = 'http://127.0.0.1:8000';
+		
+		function showTab(tabName) {
+            const searchTab = document.getElementById('tabSearch');
+            const dashTab = document.getElementById('tabDashboard');
+            const btnSearch = document.getElementById('btnSearch');
+            const btnDash = document.getElementById('btnDash');
+
+            if (tabName === 'search') {
+                searchTab.classList.remove('hidden');
+                dashTab.classList.add('hidden');
+                btnSearch.className = "bg-[#ce9552] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all";
+                btnDash.className = "bg-slate-100 text-slate-600 px-6 py-2 rounded-full font-bold hover:bg-slate-200 transition-all";
+            } else {
+                dashTab.classList.remove('hidden');
+                searchTab.classList.add('hidden');
+                btnDash.className = "bg-[#ce9552] text-white px-6 py-2 rounded-full font-bold shadow-md transition-all";
+                btnSearch.className = "bg-slate-100 text-slate-600 px-6 py-2 rounded-full font-bold hover:bg-slate-200 transition-all";
+            }
+        }
+        document.addEventListener("DOMContentLoaded", loadRecommendations);
+
+        async function loadRecommendations() {
+            try {
+                const res = await fetch(`${API_URL}/recommendations`);
+                const data = await res.json();
+                if(data.status === 'success') {
+                    renderRecList('recTop', data.top_rated, 'text-[#ce9552] hover:bg-[#FDF6EC] border-[#F0E0C9]');
+                    renderRecList('recHot', data.most_reviewed, 'text-[#ce9552] hover:bg-[#FDF6EC] border-[#F0E0C9]');
+                    renderRecList('recBad', data.worst_rated, 'text-[#ce9552] hover:bg-[#FDF6EC] border-[#F0E0C9]');
+                }
+            } catch (err) {
+                console.error("Lỗi tải gợi ý:", err);
+            }
+        }
+
+        function renderRecList(elementId, list, colorClass) {
+            const container = document.getElementById(elementId);
+            if (!list || list.length === 0) {
+                container.innerHTML = `<p class="text-sm text-slate-400 italic">Chưa đủ dữ liệu</p>`;
+                return;
+            }
+            let html = '';
+            list.forEach(item => {
+                let score = parseFloat(item.avg_score).toFixed(1);
+                html += `
+                    <div onclick="clickRecommendation('${item.restaurant_name}')" 
+                         class="cursor-pointer bg-white p-3 rounded-xl border shadow-sm text-sm font-semibold transition-all flex justify-between items-center ${colorClass}">
+                        <span class="truncate pr-2">${item.restaurant_name}</span>
+                        <!-- Đổi màu chữ ngôi sao bên trong -->
+                        <span class="text-xs bg-[#FDF6EC] border border-[#F0E0C9] px-2 py-1 rounded-md font-black min-w-max text-[#ce9552]">
+                            ${score}★ (${item.total_reviews})
+                        </span>
+                    </div>`;
+            });
+            container.innerHTML = html;
+        }
+
+        function clickRecommendation(restaurantName) {
+            document.getElementById('searchInput').value = restaurantName;
+            searchReviews();
+            document.getElementById('analyticsCard').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        async function searchReviews() {
+            const query = document.getElementById('searchInput').value.trim();
+            if (!query) { alert("Vui lòng nhập từ khóa tìm kiếm!"); return; }
+            currentSearchQuery = query;
+
+            const resultsDiv = document.getElementById('results');
+            const analyticsCard = document.getElementById('analyticsCard');
+            const commentFormCard = document.getElementById('commentFormCard');
+
+            resultsDiv.innerHTML = `<div class="text-center py-10"><i class="fa-solid fa-spinner fa-spin text-3xl text-[#ce9552] mb-2"></i></div>`;
+
+            try {
+                const [resSearch, resAnalytics] = await Promise.all([
+                    fetch(`${API_URL}/search?name=${encodeURIComponent(query)}`),
+                    fetch(`${API_URL}/analytics?name=${encodeURIComponent(query)}`)
+                ]);
+                const data = await resSearch.json();
+                const analytics = await resAnalytics.json();
+
+                if (data.length === 0) {
+                    analyticsCard.classList.add('hidden');
+                    commentFormCard.classList.add('hidden');
+                    resultsDiv.innerHTML = `<div class="text-center py-8 bg-slate-50 rounded-2xl text-slate-500">Không tìm thấy đánh giá nào.</div>`;
+                    return;
+                }
+
+                if (analytics.status === 'success') {
+                    analyticsCard.classList.remove('hidden');
+                    commentFormCard.classList.remove('hidden');
+                    document.getElementById('resName').innerText = analytics.restaurant_name;
+                    document.getElementById('resAddress').innerHTML = `<i class="fa-solid fa-location-dot text-[#ce9552] mr-1.5"></i>${analytics.address}`;
+                    
+                    if (analytics.google_maps_url && analytics.google_maps_url !== 'NaN') {
+                        document.getElementById('mapLinkContainer').innerHTML = `<a href="${analytics.google_maps_url}" target="_blank" class="bg-[#ce9552] hover:bg-[#b57a3e] text-white text-xs py-2 px-3 rounded-lg font-bold transition-all">Xem bản đồ</a>`;
+                    } else {
+                        document.getElementById('mapLinkContainer').innerHTML = '';
+                    }
+
+                    document.getElementById('statsSummary').innerHTML = `<p class="text-slate-700">Điểm: <b class="text-[#ce9552] text-lg">${analytics.overall_rating} ★</b></p><p class="text-slate-600">Bài viết: <b>${analytics.total_reviews} bài</b></p>`;
+                    renderSentimentChart(analytics.sentiment);
+                }
+
+                let html = `<p class="text-xs font-bold text-slate-400 uppercase mb-2">Bài đánh giá từ thực khách</p>`;
+                data.forEach(item => {
+                    let score = parseFloat(item.rating_score) || 0;
+                    // Đổi màu badge sao cho đồng bộ
+                    let badgeBg = score >= 4 ? 'bg-[#FDF6EC] text-[#ce9552] border border-[#F0E0C9]' : (score == 3 ? 'bg-amber-100 text-amber-800' : 'bg-rose-100 text-rose-800');
+                    html += `
+                        <div class="p-5 bg-white border border-[#F0E0C9] rounded-2xl shadow-sm">
+                            <div class="flex justify-between mb-2">
+                                <h4 class="font-bold text-slate-800 text-base"><i class="fa-solid fa-user-circle text-slate-400 mr-1.5"></i>${item.reviewer_name || 'Khách hàng'}</h4>
+                                <span class="px-2 py-1 rounded-lg text-xs font-black ${badgeBg}">${item.rating_score || 'N/A'} ★</span>
+                            </div>
+                            <div class="p-3 bg-slate-50 rounded-xl text-slate-700 text-sm italic">"${item.review_text || 'Không có bình luận.'}"</div>
+                        </div>`;
+                });
+                resultsDiv.innerHTML = html;
+
+            } catch (err) {
+                resultsDiv.innerHTML = `<div class="text-center py-6 text-rose-600">Lỗi kết nối máy chủ API.</div>`;
+            }
+        }
+
+        function renderSentimentChart(sentiment) {
+            const ctx = document.getElementById('sentimentChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+            chartInstance = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Tích cực', 'Trung bình', 'Tiêu cực'],
+                    datasets: [{ data: [sentiment.positive, sentiment.neutral, sentiment.negative], backgroundColor: ['#ce9552', '#F59E0B', '#E11D48'] }]
+                },
+                options: { responsive: true, plugins: { legend: { display: false } } }
+            });
+        }
+
+        async function submitNewComment() {
+            const reviewer_name = document.getElementById('reviewerName').value.trim() || 'Khách hàng';
+            const rating_score = parseFloat(document.getElementById('ratingScore').value);
+            const aspect = document.getElementById('reviewAspect').value;
+            const review_text = document.getElementById('reviewContent').value.trim();
+            const restaurant_name = document.getElementById('resName').innerText || currentSearchQuery;
+
+            if (!review_text) { alert("Vui lòng nhập nội dung!"); return; }
+
+            try {
+                const response = await fetch(`${API_URL}/add_comment`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ restaurant_name, reviewer_name, rating_score, review_text, aspect })
+                });
+                const res = await response.json();
+                if (res.status === 'success') {
+                    alert("Đã lưu bình luận thành công!");
+                    document.getElementById('reviewContent').value = '';
+                    searchReviews(); 
+                }
+            } catch (e) { alert("Lỗi gửi bình luận!"); }
+        }
+    </script>
+</body>
+</html>
